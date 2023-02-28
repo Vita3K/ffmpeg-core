@@ -26,8 +26,9 @@ if(NOT USE_SYSTEM_FFMPEG)
 			"${CMAKE_CURRENT_SOURCE_DIR}/macos/x86_64/libavfilter.a"
 			"${CMAKE_CURRENT_SOURCE_DIR}/macos/x86_64/libswresample.a"
 			"z")
-	elseif (UNIX)
-		target_link_libraries(${FFMPEG_CORE_NAME} INTERFACE
+        elseif (UNIX)
+		if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "(amd64)|(AMD64)|(x86_64)")
+			target_link_libraries(${FFMPEG_CORE_NAME} INTERFACE
 			"${CMAKE_CURRENT_SOURCE_DIR}/linux/x86_64/libavformat.a"
 			"${CMAKE_CURRENT_SOURCE_DIR}/linux/x86_64/libavcodec.a"
 			"${CMAKE_CURRENT_SOURCE_DIR}/linux/x86_64/libswscale.a"
@@ -35,6 +36,17 @@ if(NOT USE_SYSTEM_FFMPEG)
 			"${CMAKE_CURRENT_SOURCE_DIR}/linux/x86_64/libavfilter.a"
 			"${CMAKE_CURRENT_SOURCE_DIR}/linux/x86_64/libswresample.a"
 			"z")
+                  
+		elseif (${CMAKE_SYSTEM_PROCESSOR} MATCHES "(^aarch64)")
+		target_link_libraries(${FFMPEG_CORE_NAME} INTERFACE
+			"${CMAKE_CURRENT_SOURCE_DIR}/linux/aarch64/libavformat.a"
+			"${CMAKE_CURRENT_SOURCE_DIR}/linux/aarch64/libavcodec.a"
+			"${CMAKE_CURRENT_SOURCE_DIR}/linux/aarch64/libswscale.a"
+			"${CMAKE_CURRENT_SOURCE_DIR}/linux/aarch64/libavutil.a"
+			"${CMAKE_CURRENT_SOURCE_DIR}/linux/aarch64/libavfilter.a"
+			"${CMAKE_CURRENT_SOURCE_DIR}/linux/aarch64/libswresample.a"
+			"z")
+                endif ()
 	else ()
 		set(USE_SYSTEM_FFMPEG ON)
 	endif ()
