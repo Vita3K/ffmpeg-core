@@ -2,7 +2,7 @@ diff --git a/ports/ffmpeg/portfile.cmake b/ports/ffmpeg/portfile.cmake
 index 35bac875b..5137c69be 100644
 --- a/ports/ffmpeg/portfile.cmake
 +++ b/ports/ffmpeg/portfile.cmake
-@@ -42,7 +42,19 @@ else()
+@@ -42,7 +42,20 @@ else()
      set(LIB_PATH_VAR "LIBRARY_PATH")
  endif()
  
@@ -19,6 +19,7 @@ index 35bac875b..5137c69be 100644
 +string(APPEND OPTIONS " --enable-demuxer=h264 --enable-demuxer=m4v --enable-demuxer=mp3 --enable-demuxer=mpegvideo --enable-demuxer=mpegps --enable-demuxer=mjpeg --enable-demuxer=mov --enable-demuxer=avi --enable-demuxer=aac --enable-demuxer=pmp --enable-demuxer=oma --enable-demuxer=pcm_s16le --enable-demuxer=pcm_s8 --enable-demuxer=wav")
 +string(APPEND OPTIONS " --enable-parser=h264 --enable-parser=mpeg4video --enable-parser=mpegaudio --enable-parser=mpegvideo --enable-parser=mjpeg --enable-parser=aac --enable-parser=aac_latm")
 +string(APPEND OPTIONS " --enable-protocol=file")
++string(APPEND OPTIONS " --enable-bsf=mjpeg2jpeg")
 +string(APPEND OPTIONS " --enable-indev=dshow")
  
  if(VCPKG_TARGET_IS_WINDOWS)
