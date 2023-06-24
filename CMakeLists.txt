@@ -14,7 +14,18 @@ if (WIN32 AND NOT MINGW)
 		"${CMAKE_CURRENT_SOURCE_DIR}/lib/windows/x86_64/avfilter.lib"
 		"${CMAKE_CURRENT_SOURCE_DIR}/lib/windows/x86_64/swresample.lib"
 		"psapi;strmiids;uuid;oleaut32;shlwapi;ws2_32;ole32;user32;bcrypt")
-elseif (APPLE)
+elseif (APPLE AND CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
+	target_link_libraries(${FFMPEG_CORE_NAME} INTERFACE
+		"${CMAKE_CURRENT_SOURCE_DIR}/lib/macos/arm64/libavformat.a"
+		"${CMAKE_CURRENT_SOURCE_DIR}/lib/macos/arm64/libavcodec.a"
+		"${CMAKE_CURRENT_SOURCE_DIR}/lib/macos/arm64/libswscale.a"
+		"${CMAKE_CURRENT_SOURCE_DIR}/lib/macos/arm64/libavutil.a"
+		"${CMAKE_CURRENT_SOURCE_DIR}/lib/macos/arm64/libavfilter.a"
+		"${CMAKE_CURRENT_SOURCE_DIR}/lib/macos/arm64/libswresample.a"
+		"-framework CoreServices" "-framework CoreFoundation" "-framework AudioUnit"
+		"-framework AudioToolbox" "-framework CoreAudio" "-framework CoreMedia"
+		"-framework VideoToolbox" "-framework CoreVideo" "-framework Security")
+elseif (APPLE AND CMAKE_OSX_ARCHITECTURES STREQUAL "x86_64")
 	target_link_libraries(${FFMPEG_CORE_NAME} INTERFACE
 		"${CMAKE_CURRENT_SOURCE_DIR}/lib/macos/x86_64/libavformat.a"
 		"${CMAKE_CURRENT_SOURCE_DIR}/lib/macos/x86_64/libavcodec.a"
