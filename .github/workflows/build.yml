@@ -17,25 +17,21 @@ jobs:
           - build: ubuntu-x64
             os: ubuntu-latest
             triplet: x64-linux-release
-            upload-path: /home/runner/.cache/vcpkg/archives
             vcpkg-root: /usr/local/share/vcpkg
             extra-args: ""
           - build: windows-x64
             os: windows-latest
             triplet: x64-win-llvm-static-release
-            upload-path: C:\Users\runneradmin\AppData\Local\vcpkg\archives
             vcpkg-root: C:\vcpkg
             extra-args: --overlay-triplets=./triplets
           - build: macos-x64
             os: macos-latest
             triplet: x64-osx-release
-            upload-path: /Users/runner/.cache/vcpkg/archives
             vcpkg-root: /usr/local/share/vcpkg
             extra-args: ""
           - build: macos-arm64
             os: macos-latest
             triplet: arm64-osx-release
-            upload-path: /Users/runner/.cache/vcpkg/archives
             vcpkg-root: /usr/local/share/vcpkg
             extra-args: ""
 
@@ -66,5 +62,5 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: ffmpeg-${{ matrix.build }}
-          path: ${{ matrix.upload-path }}
+          path: ${{ matrix.vcpkg-root }}/packages/ffmpeg_${{ matrix.triplet }}/lib
         if: ${{ always() }}
