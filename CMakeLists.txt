@@ -16,12 +16,12 @@ if (WIN32 AND NOT MINGW)
 		"psapi;strmiids;uuid;oleaut32;shlwapi;ws2_32;ole32;user32;bcrypt")
 elseif (APPLE)
 	target_link_libraries(${FFMPEG_CORE_NAME} INTERFACE
-		"${CMAKE_CURRENT_SOURCE_DIR}/lib/macos/${ARCHITECTURE}/libavformat.a"
-		"${CMAKE_CURRENT_SOURCE_DIR}/lib/macos/${ARCHITECTURE}/libavcodec.a"
-		"${CMAKE_CURRENT_SOURCE_DIR}/lib/macos/${ARCHITECTURE}/libswscale.a"
-		"${CMAKE_CURRENT_SOURCE_DIR}/lib/macos/${ARCHITECTURE}/libavutil.a"
-		"${CMAKE_CURRENT_SOURCE_DIR}/lib/macos/${ARCHITECTURE}/libavfilter.a"
-		"${CMAKE_CURRENT_SOURCE_DIR}/lib/macos/${ARCHITECTURE}/libswresample.a"
+		"${CMAKE_CURRENT_SOURCE_DIR}/lib/macos/libavformat.a"
+		"${CMAKE_CURRENT_SOURCE_DIR}/lib/macos/libavcodec.a"
+		"${CMAKE_CURRENT_SOURCE_DIR}/lib/macos/libswscale.a"
+		"${CMAKE_CURRENT_SOURCE_DIR}/lib/macos/libavutil.a"
+		"${CMAKE_CURRENT_SOURCE_DIR}/lib/macos/libavfilter.a"
+		"${CMAKE_CURRENT_SOURCE_DIR}/lib/macos/libswresample.a"
 		"-framework CoreServices" "-framework CoreFoundation" "-framework AudioUnit"
 		"-framework AudioToolbox" "-framework CoreAudio" "-framework CoreMedia"
 		"-framework VideoToolbox" "-framework CoreVideo" "-framework Security")
