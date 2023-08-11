@@ -11,7 +11,7 @@ jobs:
       fail-fast: false
       matrix:
         # os: [ubuntu-latest, windows-latest, macos-latest]
-        build: [ubuntu-x64, windows-x64, macos-x64, macos-arm64]
+        build: [ubuntu-x64, windows-x64, macos-universal]
         config: [Release]
         include:
           - build: ubuntu-x64
@@ -24,16 +24,11 @@ jobs:
             triplet: x64-win-llvm-static-release
             vcpkg-root: C:\vcpkg
             extra-args: --overlay-triplets=./triplets
-          - build: macos-x64
+          - build: macos-universal
             os: macos-latest
-            triplet: x64-osx-release
+            triplet: universal-osx-release
             vcpkg-root: /usr/local/share/vcpkg
-            extra-args: ""
-          - build: macos-arm64
-            os: macos-latest
-            triplet: arm64-osx-release
-            vcpkg-root: /usr/local/share/vcpkg
-            extra-args: ""
+            extra-args: --overlay-triplets=./triplets
 
     steps:
       - uses: actions/checkout@v3
