@@ -26,13 +26,61 @@ elseif (APPLE)
 		"-framework AudioToolbox" "-framework CoreAudio" "-framework CoreMedia"
 		"-framework VideoToolbox" "-framework CoreVideo" "-framework Security")
 elseif (UNIX)
-	target_link_libraries(${FFMPEG_CORE_NAME} INTERFACE
-		"${CMAKE_CURRENT_SOURCE_DIR}/lib/linux/x86_64/libavformat.a"
-		"${CMAKE_CURRENT_SOURCE_DIR}/lib/linux/x86_64/libavcodec.a"
-		"${CMAKE_CURRENT_SOURCE_DIR}/lib/linux/x86_64/libswscale.a"
-		"${CMAKE_CURRENT_SOURCE_DIR}/lib/linux/x86_64/libavutil.a"
-		"${CMAKE_CURRENT_SOURCE_DIR}/lib/linux/x86_64/libavfilter.a"
-		"${CMAKE_CURRENT_SOURCE_DIR}/lib/linux/x86_64/libswresample.a")
+	if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
+		# Find the libavformat library
+		find_library(LIBAVFORMAT_LIBRARY avformat)
+		if(NOT LIBAVFORMAT_LIBRARY)
+			message(FATAL_ERROR "libavformat library not found")
+		endif()
+
+		# Find the libavcodec library
+		find_library(LIBAVCODEC_LIBRARY avcodec)
+		if(NOT LIBAVCODEC_LIBRARY)
+			message(FATAL_ERROR "libavcodec library not found")
+		endif()
+
+		# Find the libswscale library
+		find_library(LIBSWSCALE_LIBRARY swscale)
+		if(NOT LIBSWSCALE_LIBRARY)
+			message(FATAL_ERROR "libswscale library not found")
+		endif()
+
+		# Find the libavutil library
+		find_library(LIBAVUTIL_LIBRARY avutil)
+		if(NOT LIBAVUTIL_LIBRARY)
+			message(FATAL_ERROR "libavutil library not found")
+		endif()
+
+		# Find the libavfilter library
+		find_library(LIBAVFILTER_LIBRARY avfilter)
+		if(NOT LIBAVFILTER_LIBRARY)
+			message(FATAL_ERROR "libavfilter library not found")
+		endif()
+
+		# Find the libswresample library
+		find_library(LIBSWRESAMPLE_LIBRARY swresample)
+		if(NOT LIBSWRESAMPLE_LIBRARY)
+			message(FATAL_ERROR "libswresample library not found")
+		endif()
+
+		# Add specific settings for ARM architecture here
+		target_link_libraries(${FFMPEG_CORE_NAME} INTERFACE
+			${LIBAVFORMAT_LIBRARY}
+			${LIBAVCODEC_LIBRARY}
+			${LIBSWSCALE_LIBRARY}
+			${LIBAVUTIL_LIBRARY}
+			${LIBAVFILTER_LIBRARY}
+			${LIBSWRESAMPLE_LIBRARY}
+		)
+	else()
+	    target_link_libraries(${FFMPEG_CORE_NAME} INTERFACE
+                "${CMAKE_CURRENT_SOURCE_DIR}/lib/linux/x86_64/libavformat.a"
+                "${CMAKE_CURRENT_SOURCE_DIR}/lib/linux/x86_64/libavcodec.a"
+                "${CMAKE_CURRENT_SOURCE_DIR}/lib/linux/x86_64/libswscale.a"
+                "${CMAKE_CURRENT_SOURCE_DIR}/lib/linux/x86_64/libavutil.a"
+                "${CMAKE_CURRENT_SOURCE_DIR}/lib/linux/x86_64/libavfilter.a"
+                "${CMAKE_CURRENT_SOURCE_DIR}/lib/linux/x86_64/libswresample.a")
+	endif()
 else ()
 	message(FATAL_ERROR "No prebuilt was found for ffmpeg")
 endif ()
