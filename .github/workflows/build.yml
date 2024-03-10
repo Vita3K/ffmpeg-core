@@ -72,3 +72,37 @@ jobs:
           name: ffmpeg-${{ matrix.build }}-${{ matrix.arch }}
           path: ${{ matrix.vcpkg-root }}/packages/ffmpeg_${{ matrix.arch }}-${{ matrix.triplet }}/lib
         if: ${{ always() }}
+
+  create-release:
+    needs: [build]
+    runs-on: "ubuntu-20.04"
+    if: github.ref == 'refs/heads/master'
+    permissions:
+      contents: write
+      
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        
+      - name: Compute short git commit SHA
+        run: |
+          echo "COMMIT_SHORT_SHA=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_ENV
+          echo ${{ env.COMMIT_SHORT_SHA }}
+
+      - name: Upload
+        shell: bash
+        run: |
+          mkdir artifacts/
+          files=$(find . -name "ffmpeg-*")
+          for f in $files; do
+            echo "Compressing $f"
+            (cd $(basename $f) && zip -r ../artifacts/$(basename $f).zip *)
+          done
+          ls -al artifacts/
+          wget -c https://github.com/tcnksm/ghr/releases/download/v0.14.0/ghr_v0.14.0_linux_amd64.tar.gz
+          tar xfv ghr_v0.14.0_linux_amd64.tar.gz
+          ghr_v0.14.0_linux_amd64/ghr -u Vita3K -r ffmpeg-core -n 'Automatic FFmpeg CI builds (${{ env.COMMIT_SHORT_SHA }})' -b "$(printf "Corresponding commit: ${{ github.sha }}")" ${{ env.COMMIT_SHORT_SHA }} artifacts/
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
