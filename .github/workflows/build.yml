@@ -5,33 +5,41 @@ on: [push]
 jobs:
 
   build:
+    name: ${{ matrix.build }} ${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
       matrix:
-        # os: [ubuntu-latest, windows-latest, macos-latest]
-        build: [ubuntu-x64, windows-x64, macos-universal]
-        config: [Release]
+        build: [linux, windows, macos]
+        arch: [x64, arm64]
         include:
-          - build: ubuntu-x64
+          - build: linux
             os: ubuntu-latest
-            triplet: x64-linux-release
+            triplet: linux-release
             vcpkg-root: /usr/local/share/vcpkg
             extra-args: ""
-          - build: windows-x64
+          - build: windows
             os: windows-latest
-            triplet: x64-win-llvm-static-release
+            triplet: win-llvm-static-release
             vcpkg-root: C:\vcpkg
             extra-args: --overlay-triplets=./triplets
-          - build: macos-universal
+          - build: macos
             os: macos-latest
-            triplet: universal-osx-release
+            triplet: osx-release
+            vcpkg-root: /usr/local/share/vcpkg
+            extra-args: ""
+          - build: macos
+            os: macos-latest
+            arch: universal
+            triplet: osx-release
             vcpkg-root: /usr/local/share/vcpkg
             extra-args: --overlay-triplets=./triplets
-
+        exclude:
+          - build: windows
+            arch: arm64
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up build environment (macos-latest)
         run: |
@@ -43,6 +51,11 @@ jobs:
           sudo apt -y install nasm
         if: matrix.os == 'ubuntu-latest'
 
+      - name: Set up build environment (arm64 ubuntu-latest)
+        run: |
+          sudo apt-get install -qy binutils-aarch64-linux-gnu gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+        if: matrix.os == 'ubuntu-latest' && matrix.arch == 'arm64'
+
       - name: Patch vcpkg
         run: |
           (cd ${{ matrix.vcpkg-root }} && git fetch origin)
@@ -52,10 +65,10 @@ jobs:
 
       - name: Build ffmpeg
         run: |
-          vcpkg ${{ matrix.extra-args }} install ffmpeg[avcodec,avfilter,avdevice,avformat,swresample,swscale]:${{ matrix.triplet }}
+          vcpkg ${{ matrix.extra-args }} install ffmpeg[avcodec,avfilter,avdevice,avformat,swresample,swscale]:${{ matrix.arch }}-${{ matrix.triplet }}
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
-          name: ffmpeg-${{ matrix.build }}
-          path: ${{ matrix.vcpkg-root }}/packages/ffmpeg_${{ matrix.triplet }}/lib
+          name: ffmpeg-${{ matrix.build }}-${{ matrix.arch }}
+          path: ${{ matrix.vcpkg-root }}/packages/ffmpeg_${{ matrix.arch }}-${{ matrix.triplet }}/lib
         if: ${{ always() }}
