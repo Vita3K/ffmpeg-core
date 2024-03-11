@@ -35,9 +35,7 @@ jobs:
             triplet: osx-release
             vcpkg-root: /usr/local/share/vcpkg
             extra-args: --overlay-triplets=./triplets
-        exclude:
-          - build: windows
-            arch: arm64
+
     steps:
       - uses: actions/checkout@v4
 
