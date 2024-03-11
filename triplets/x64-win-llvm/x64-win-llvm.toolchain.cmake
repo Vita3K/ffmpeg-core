@@ -35,7 +35,8 @@ set(std_c_flags "-std:c11 -D__STDC__=1 -Wno-implicit-function-declaration") #/Zc
 
 # Set Windows definitions:
 set(windows_defs "/DWIN32")
-if(VCPKG_TARGET_ARCHITECTURE STREQUAL x64)
+set(64BIT_ARCH x64 arm64)
+if(VCPKG_TARGET_ARCHITECTURE IN_LIST 64BIT_ARCH)
   string(APPEND windows_defs " /D_WIN64")
 endif()
 string(APPEND windows_defs " /D_WIN32_WINNT=0x0A00 /DWINVER=0x0A00") # tweak for targeted windows
@@ -55,6 +56,8 @@ set(arch_flags "-mcrc32")
 # -msse4.2 for everything which normally cl can use. (Otherwise strict sse2 only.)
 if(VCPKG_TARGET_ARCHITECTURE STREQUAL x86)
   string(APPEND arch_flags " -m32 --target=i686-pc-windows-msvc")
+elseif(VCPKG_TARGET_ARCHITECTURE STREQUAL arm64)
+  string(APPEND arch_flags " --target=arm64-pc-windows-msvc")
 endif()
 # /Za unknown
 
