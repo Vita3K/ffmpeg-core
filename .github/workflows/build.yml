@@ -1,0 +1,106 @@
+name: C/C++ CI
+
+on: [push]
+
+jobs:
+
+  build:
+    name: ${{ matrix.build }} ${{ matrix.arch }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        build: [linux, windows, macos]
+        arch: [x64, arm64]
+        include:
+          - build: linux
+            os: ubuntu-latest
+            triplet: linux-release
+            vcpkg-root: /usr/local/share/vcpkg
+            extra-args: ""
+          - build: windows
+            os: windows-latest
+            triplet: win-llvm-static-release
+            vcpkg-root: C:\vcpkg
+            extra-args: --overlay-triplets=./triplets
+          - build: macos
+            os: macos-latest
+            triplet: osx-release
+            vcpkg-root: /usr/local/share/vcpkg
+            extra-args: ""
+          - build: macos
+            os: macos-latest
+            arch: universal
+            triplet: osx-release
+            vcpkg-root: /usr/local/share/vcpkg
+            extra-args: --overlay-triplets=./triplets
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up build environment (macos-latest)
+        run: |
+          brew install nasm
+        if: matrix.os == 'macos-latest'
+
+      - name: Set up build environment (ubuntu-latest)
+        run: |
+          sudo apt -y install nasm
+        if: matrix.os == 'ubuntu-latest'
+
+      - name: Set up build environment (arm64 ubuntu-latest)
+        run: |
+          sudo apt-get install -qy binutils-aarch64-linux-gnu gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+        if: matrix.os == 'ubuntu-latest' && matrix.arch == 'arm64'
+
+      - name: Patch vcpkg
+        run: |
+          (cd ${{ matrix.vcpkg-root }} && git fetch origin)
+          (cd ${{ matrix.vcpkg-root }} && git reset --hard)
+          (cd ${{ matrix.vcpkg-root }} && git checkout f6a5d4e8eb7476b8d7fc12a56dff300c1c986131)
+          (cd ${{ matrix.vcpkg-root }} && git apply --ignore-space-change --ignore-whitespace --3way ${{ github.workspace }}/ffmpeg.patch)
+
+      - name: Build ffmpeg
+        run: |
+          vcpkg ${{ matrix.extra-args }} install ffmpeg[avcodec,avfilter,avdevice,avformat,swresample,swscale]:${{ matrix.arch }}-${{ matrix.triplet }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ffmpeg-${{ matrix.build }}-${{ matrix.arch }}
+          path: ${{ matrix.vcpkg-root }}/packages/ffmpeg_${{ matrix.arch }}-${{ matrix.triplet }}/lib
+        if: ${{ always() }}
+
+  create-release:
+    needs: [build]
+    runs-on: "ubuntu-20.04"
+    if: github.ref == 'refs/heads/master'
+    permissions:
+      contents: write
+      
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        
+      - name: Compute short git commit SHA
+        run: |
+          echo "COMMIT_SHORT_SHA=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_ENV
+          echo ${{ env.COMMIT_SHORT_SHA }}
+
+      - name: Upload
+        shell: bash
+        run: |
+          mkdir artifacts/
+          files=$(find . -name "ffmpeg-*")
+          for f in $files; do
+            echo "Compressing $f"
+            (cd $(basename $f) && zip -r ../artifacts/$(basename $f).zip *)
+          done
+          ls -al artifacts/
+          wget -c https://github.com/tcnksm/ghr/releases/download/v0.14.0/ghr_v0.14.0_linux_amd64.tar.gz
+          tar xfv ghr_v0.14.0_linux_amd64.tar.gz
+          ghr_v0.14.0_linux_amd64/ghr -u Vita3K -r ffmpeg-core -n 'Automatic FFmpeg CI builds (${{ env.COMMIT_SHORT_SHA }})' -b "$(printf "Corresponding commit: ${{ github.sha }}")" ${{ env.COMMIT_SHORT_SHA }} artifacts/
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
