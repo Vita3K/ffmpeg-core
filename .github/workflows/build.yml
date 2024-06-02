@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build: [linux, windows, macos]
+        build: [linux, windows, macos, android]
         arch: [x64, arm, arm64]
         exclude:
           - build: windows
@@ -21,6 +21,10 @@ jobs:
             arch: arm
           - build: windows
             arch: arm64
+          - build: android
+            arch: x64
+          - build: android
+            arch: arm
         include:
           - build: linux
             os: ubuntu-latest
@@ -49,6 +53,11 @@ jobs:
             triplet: osx-release
             vcpkg-root: /Users/runner/vcpkg
             extra-args: --overlay-triplets=./triplets
+          - build: android
+            os: ubuntu-latest
+            triplet: android-static-release
+            vcpkg-root: /usr/local/share/vcpkg
+            extra-args: ""
 
     steps:
       - run: git config --global core.autocrlf input
