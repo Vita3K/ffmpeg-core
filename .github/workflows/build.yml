@@ -27,13 +27,13 @@ jobs:
           - build: macos
             os: macos-latest
             triplet: osx-release
-            vcpkg-root: /usr/local/share/vcpkg
+            vcpkg-root: /Users/runner/vcpkg
             extra-args: ""
           - build: macos
             os: macos-latest
             arch: universal
             triplet: osx-release
-            vcpkg-root: /usr/local/share/vcpkg
+            vcpkg-root: /Users/runner/vcpkg
             extra-args: --overlay-triplets=./triplets
 
     steps:
@@ -41,7 +41,9 @@ jobs:
 
       - name: Set up build environment (macos-latest)
         run: |
-          brew install nasm
+          brew install nasm vcpkg
+          git clone https://github.com/microsoft/vcpkg "$HOME/vcpkg"
+          echo VCPKG_ROOT="$HOME/vcpkg" >> $GITHUB_ENV
         if: matrix.os == 'macos-latest'
 
       - name: Set up build environment (ubuntu-latest)
