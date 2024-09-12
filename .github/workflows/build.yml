@@ -25,12 +25,12 @@ jobs:
             triplet: win-llvm-static-release
             vcpkg-root: C:\vcpkg
             extra-args: --overlay-triplets=./triplets
-          - build: windows
+          - build: mingw
             os: windows-latest
             triplet: mingw-static
             vcpkg-root: C:\vcpkg
-            extra-args: --overlay-triplets=./triplets
             arch: x64
+            extra-args: ""
           - build: macos
             os: macos-latest
             triplet: osx-release
