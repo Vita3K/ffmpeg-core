@@ -50,7 +50,10 @@ set(ignore_werror "/WX-")
 cmake_language(DEFER CALL add_compile_options "/WX-") # make sure the flag is added at the end!
 
 # general architecture flags
-set(arch_flags "-mcrc32")
+set(arch_flags "")
+if(VCPKG_TARGET_ARCHITECTURE STREQUAL x64)
+  string(APPEND arch_flags "-mcrc32")
+endif()
 # -mcrc32 for libpq
 # -mrtm for tbb (will break qtdeclarative since it cannot run the executables in CI)
 # -msse4.2 for everything which normally cl can use. (Otherwise strict sse2 only.)
