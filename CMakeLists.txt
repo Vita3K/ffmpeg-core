@@ -42,7 +42,7 @@ execute_process(
 # Download prebuilt ffmpeg
 if(NOT EXISTS "${CMAKE_BINARY_DIR}/external/ffmpeg.zip")
 	message(STATUS "Downloading FFMPEG prebuilts...")
-	file(DOWNLOAD https://github.com/Vita3K/ffmpeg-core/releases/download/${FFMPEG_GIT_SHA}/${FFMPEG_PREBUILTS_NAME}
+	file(DOWNLOAD https://github.com/shadps4-emu/ext-ffmpeg-core/releases/download/${FFMPEG_GIT_SHA}/${FFMPEG_PREBUILTS_NAME}
 		"${CMAKE_BINARY_DIR}/external/ffmpeg.zip" SHOW_PROGRESS
 		STATUS FILE_STATUS)
 	list(GET FILE_STATUS 0 STATUS_CODE)

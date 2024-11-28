@@ -81,6 +81,11 @@ jobs:
           (cd ${{ matrix.vcpkg-root }} && git checkout f6a5d4e8eb7476b8d7fc12a56dff300c1c986131)
           (cd ${{ matrix.vcpkg-root }} && git apply --ignore-space-change --ignore-whitespace --3way ${{ github.workspace }}/ffmpeg.patch)
 
+      - name: Bootstrap vcpkg (windows-latest)
+        run: |
+          (cd ${{ matrix.vcpkg-root }} && .\bootstrap-vcpkg.bat)
+        if: matrix.os == 'windows-latest'
+
       - name: Build ffmpeg
         run: |
             vcpkg ${{ matrix.extra-args }} install ffmpeg[avcodec,avfilter,avdevice,avformat,swresample,swscale]:${{ matrix.arch }}-${{ matrix.triplet }}
@@ -129,6 +134,6 @@ jobs:
           ls -al artifacts/
           wget -c https://github.com/tcnksm/ghr/releases/download/v0.14.0/ghr_v0.14.0_linux_amd64.tar.gz
           tar xfv ghr_v0.14.0_linux_amd64.tar.gz
-          ghr_v0.14.0_linux_amd64/ghr -u Vita3K -r ffmpeg-core -n 'Automatic FFmpeg CI builds (${{ env.COMMIT_SHORT_SHA }})' -b "$(printf "Corresponding commit: ${{ github.sha }}")" ${{ env.COMMIT_SHORT_SHA }} artifacts/
+          ghr_v0.14.0_linux_amd64/ghr -u shadps4-emu -r ext-ffmpeg-core -n 'Automatic FFmpeg CI builds (${{ env.COMMIT_SHORT_SHA }})' -b "$(printf "Corresponding commit: ${{ github.sha }}")" ${{ env.COMMIT_SHORT_SHA }} artifacts/
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
