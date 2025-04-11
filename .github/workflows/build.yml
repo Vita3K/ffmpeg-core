@@ -78,7 +78,7 @@ jobs:
         run: |
           (cd ${{ matrix.vcpkg-root }} && git fetch origin)
           (cd ${{ matrix.vcpkg-root }} && git reset --hard)
-          (cd ${{ matrix.vcpkg-root }} && git checkout f6a5d4e8eb7476b8d7fc12a56dff300c1c986131)
+          (cd ${{ matrix.vcpkg-root }} && git checkout df8bfe519564ae001903e5cdd32af0999531ef71)
           (cd ${{ matrix.vcpkg-root }} && git apply --ignore-space-change --ignore-whitespace --3way ${{ github.workspace }}/ffmpeg.patch)
 
       - name: Bootstrap vcpkg (windows-latest)
