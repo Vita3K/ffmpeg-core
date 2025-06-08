@@ -24,6 +24,8 @@ if(NOT DEFINED ARCHITECTURE)
 	message(FATAL_ERROR "ARCHITECTURE variable is not set up")
 elseif (ARCHITECTURE STREQUAL "x86_64")
 	set(FFMPEG_PREBUILTS_NAME "${FFMPEG_PREBUILTS_NAME}-x64.zip")
+elseif(ARCHITECTURE STREQUAL "arm")
+	set(FFMPEG_PREBUILTS_NAME "${FFMPEG_PREBUILTS_NAME}-arm.zip")
 elseif(ARCHITECTURE STREQUAL "arm64")
 	set(FFMPEG_PREBUILTS_NAME "${FFMPEG_PREBUILTS_NAME}-arm64.zip")
 elseif(APPLE AND "x86_64" IN_LIST ARCHITECTURE AND "arm64" IN_LIST ARCHITECTURE) # macOS universal
@@ -42,7 +44,7 @@ execute_process(
 # Download prebuilt ffmpeg
 if(NOT EXISTS "${CMAKE_BINARY_DIR}/external/ffmpeg.zip")
 	message(STATUS "Downloading FFMPEG prebuilts...")
-	file(DOWNLOAD https://github.com/Vita3K/ffmpeg-core/releases/download/${FFMPEG_GIT_SHA}/${FFMPEG_PREBUILTS_NAME}
+	file(DOWNLOAD https://github.com/xerpi/ffmpeg-core/releases/download/${FFMPEG_GIT_SHA}/${FFMPEG_PREBUILTS_NAME}
 		"${CMAKE_BINARY_DIR}/external/ffmpeg.zip" SHOW_PROGRESS
 		STATUS FILE_STATUS)
 	list(GET FILE_STATUS 0 STATUS_CODE)

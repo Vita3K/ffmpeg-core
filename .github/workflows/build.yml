@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         build: [linux, windows, macos]
-        arch: [x64, arm64]
+        arch: [x64, arm, arm64]
         include:
           - build: linux
             os: ubuntu-latest
@@ -69,6 +69,11 @@ jobs:
           sudo apt -y install nasm
         if: matrix.os == 'ubuntu-latest'
 
+      - name: Set up build environment (arm ubuntu-latest)
+        run: |
+          sudo apt-get install -qy binutils-arm-linux-gnueabihf gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
+        if: matrix.os == 'ubuntu-latest' && matrix.arch == 'arm'
+
       - name: Set up build environment (arm64 ubuntu-latest)
         run: |
           sudo apt-get install -qy binutils-aarch64-linux-gnu gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
@@ -105,13 +110,13 @@ jobs:
     if: github.ref == 'refs/heads/master'
     permissions:
       contents: write
-      
+
     steps:
       - uses: actions/checkout@v4
 
       - name: Download Artifacts
         uses: actions/download-artifact@v4
-        
+
       - name: Compute short git commit SHA
         run: |
           echo "COMMIT_SHORT_SHA=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_ENV
