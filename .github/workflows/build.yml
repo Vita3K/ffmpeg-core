@@ -13,7 +13,14 @@ jobs:
       fail-fast: false
       matrix:
         build: [linux, windows, macos]
-        arch: [x64, arm64]
+        arch: [x64, arm, arm64]
+        exclude:
+          - build: windows
+            arch: arm
+          - build: macos
+            arch: arm
+          - build: windows
+            arch: arm64
         include:
           - build: linux
             os: ubuntu-latest
@@ -66,8 +73,14 @@ jobs:
 
       - name: Set up build environment (ubuntu-latest)
         run: |
+          sudo apt-get update
           sudo apt -y install nasm
         if: matrix.os == 'ubuntu-latest'
+
+      - name: Set up build environment (arm ubuntu-latest)
+        run: |
+          sudo apt-get install -qy binutils-arm-linux-gnueabihf gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
+        if: matrix.os == 'ubuntu-latest' && matrix.arch == 'arm'
 
       - name: Set up build environment (arm64 ubuntu-latest)
         run: |
