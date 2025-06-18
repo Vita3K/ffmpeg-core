@@ -12,8 +12,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build: [linux, windows, macos]
-        arch: [x64, arm64]
+        build: [linux, windows, android, macos]
+        arch: [x64, arm64, arm]
         include:
           - build: linux
             os: ubuntu-latest
@@ -25,11 +25,10 @@ jobs:
             triplet: win-llvm-static-release
             vcpkg-root: C:\vcpkg
             extra-args: --overlay-triplets=./triplets
-          - build: mingw
-            os: windows-latest
-            triplet: mingw-static
-            vcpkg-root: C:\vcpkg
-            arch: x64
+          - build: android
+            os: ubuntu-latest
+            triplet: android-static-release
+            vcpkg-root: /usr/local/share/vcpkg
             extra-args: ""
           - build: macos
             os: macos-latest
@@ -42,28 +41,35 @@ jobs:
             triplet: osx-release
             vcpkg-root: /Users/runner/vcpkg
             extra-args: --overlay-triplets=./triplets
+        exclude:
+          - build: android
+            arch: x64
+          - build: android
+            arch: x86
+          - build: windows
+            arch: arm
+          - build: linux
+            arch: arm
+          - build: macos
+            arch: arm
+          - build: macos
+            arch: x86
 
     steps:
-      - run: git config --global core.autocrlf input
-      - uses: msys2/setup-msys2@v2
-        id: msys2
-        with:
-          msystem: CLANG64
-          update: true
-          pacboy: >-
-            toolchain:p
-            cmake:p
-            ninja:p
-        if: matrix.triplet == 'mingw-static'
       - uses: actions/checkout@v4
 
+  #    - name: Set up build environment (macos-latest)
+  #      run: |
+  #        brew install nasm
+  #      if: matrix.os == 'macos-latest'
+        
       - name: Set up build environment (macos-latest)
         run: |
           brew install nasm vcpkg
           git clone https://github.com/microsoft/vcpkg "$HOME/vcpkg"
           echo VCPKG_ROOT="$HOME/vcpkg" >> $GITHUB_ENV
         if: matrix.os == 'macos-latest'
-
+        
       - name: Set up build environment (ubuntu-latest)
         run: |
           sudo apt -y install nasm
@@ -72,26 +78,31 @@ jobs:
       - name: Set up build environment (arm64 ubuntu-latest)
         run: |
           sudo apt-get install -qy binutils-aarch64-linux-gnu gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
-        if: matrix.os == 'ubuntu-latest' && matrix.arch == 'arm64'
+        if: matrix.build == 'linux' && matrix.arch == 'arm64'
+
+
+      - name: Set up build environment (arm ubuntu-latest)
+        run: |
+          sudo apt-get install -qy binutils-arm-linux-gnueabi gcc-arm-linux-gnueabi g++-arm-linux-gnueabi
+        if: matrix.os == 'ubuntu-latest' && matrix.arch == 'arm'
 
       - name: Patch vcpkg
         run: |
           (cd ${{ matrix.vcpkg-root }} && git fetch origin)
           (cd ${{ matrix.vcpkg-root }} && git reset --hard)
-          (cd ${{ matrix.vcpkg-root }} && git checkout 41f90cc7b84116517b01f729af17fc735e9cd821)
+          (cd ${{ matrix.vcpkg-root }} && git checkout ef7dbf94b9198bc58f45951adcf1f041fcbc5ea0)
           (cd ${{ matrix.vcpkg-root }} && git apply --ignore-space-change --ignore-whitespace --3way ${{ github.workspace }}/ffmpeg.patch)
+
+      - name: Build ffmpeg window ARM64
+        run: |
+            vcpkg ${{ matrix.extra-args }} install ffmpeg[avcodec,avfilter,avdevice,avformat,swresample,swscale]:arm64-${{ matrix.triplet }}
+        if: matrix.arch == 'arm64' && matrix.build == 'windows'
+        env:
+            VCPKG_CXX_FLAGS: "/D_WIN64 /D_WIN32_WINNT=0x0A00 /DWINVER=0x0A00" # Avoid unsupported flags
 
       - name: Build ffmpeg
         run: |
-            vcpkg ${{ matrix.extra-args }} install ffmpeg[avcodec,avfilter,avdevice,avformat,swresample,swscale]:${{ matrix.arch }}-${{ matrix.triplet }}
-        if: matrix.triplet != 'mingw-static'
-
-      - name: Build ffmpeg (x64-mingw-static)
-        shell: msys2 {0}
-        run: |
-            export PATH=$(cygpath '${{ matrix.vcpkg-root }}'):$PATH
-            vcpkg ${{ matrix.extra-args }} install ffmpeg[avcodec,avfilter,avdevice,avformat,swresample,swscale]:${{ matrix.arch }}-${{ matrix.triplet }}
-        if: matrix.triplet == 'mingw-static'
+          vcpkg ${{ matrix.extra-args }} install ffmpeg[avcodec,avfilter,avdevice,avformat,swresample,swscale]:${{ matrix.arch }}-${{ matrix.triplet }}
 
       - uses: actions/upload-artifact@v4
         with:
@@ -102,7 +113,7 @@ jobs:
   create-release:
     needs: [build]
     runs-on: "ubuntu-24.04"
-    if: github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/android'
     permissions:
       contents: write
 
