@@ -19,8 +19,6 @@ jobs:
             arch: arm
           - build: macos
             arch: arm
-          - build: windows
-            arch: arm64
           - build: android
             arch: x64
           - build: android
