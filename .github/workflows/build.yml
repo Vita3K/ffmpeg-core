@@ -18,8 +18,6 @@ jobs:
             arch: arm
           - build: macos
             arch: arm
-          - build: android
-            arch: arm
 
         include:
           - build: linux
@@ -65,11 +63,8 @@ jobs:
             triplet: android
 
           - build: android
-            os: ubuntu-latest
-            arch: arm-neon
-            triplet: android
-            vcpkg-root: /usr/local/share/vcpkg
-            extra-args: ""
+            arch: arm
+            triplet: neon-android
 
     steps:
       - run: git config --global core.autocrlf input
@@ -103,7 +98,7 @@ jobs:
       - name: Set up build environment (ubuntu-latest arm)
         run: |
           sudo apt-get install -qy binutils-arm-linux-gnueabihf gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
-        if: matrix.os == 'ubuntu-latest' && (matrix.arch == 'arm' || matrix.arch == 'arm-neon')
+        if: matrix.os == 'ubuntu-latest' && matrix.arch == 'arm'
 
       - name: Set up build environment (ubuntu-latest arm64)
         run: |
@@ -141,6 +136,9 @@ jobs:
     if: github.ref == 'refs/heads/master' && github.repository_owner == 'Vita3K'
     permissions:
       contents: write
+    concurrency:
+      group: create-release
+      cancel-in-progress: false
 
     steps:
       - uses: actions/checkout@v6
@@ -154,8 +152,7 @@ jobs:
           echo $commit_short_sha
           echo "COMMIT_SHORT_SHA=$commit_short_sha" >> $GITHUB_ENV
 
-      - name: Upload
-        shell: bash
+      - name: Prepare artifacts
         run: |
           mkdir artifacts/
           files=$(find . -name "ffmpeg-*")
@@ -164,8 +161,13 @@ jobs:
             (cd $(basename $f) && zip -r ../artifacts/$(basename $f).zip *)
           done
           ls -al artifacts/
-          wget -c https://github.com/tcnksm/ghr/releases/download/v0.14.0/ghr_v0.14.0_linux_amd64.tar.gz
-          tar xfv ghr_v0.14.0_linux_amd64.tar.gz
-          ghr_v0.14.0_linux_amd64/ghr -u ${{ github.repository_owner }} -r ffmpeg-core -n 'Automatic FFmpeg CI builds (${{ env.COMMIT_SHORT_SHA }})' -b "$(printf "Corresponding commit: ${{ github.sha }}")" ${{ env.COMMIT_SHORT_SHA }} artifacts/
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload
+        uses: tcnksm/ghr@v0
+        with:
+          owner: ${{ github.repository_owner }}
+          repository: ffmpeg-core
+          name: Automatic FFmpeg CI builds (${{ env.COMMIT_SHORT_SHA }})
+          body: "Corresponding commit: ${{ github.sha }}"
+          tag: ${{ env.COMMIT_SHORT_SHA }}
+          path: artifacts/
