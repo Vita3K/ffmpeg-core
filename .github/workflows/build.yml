@@ -11,10 +11,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build: [linux, windows, macos, android]
+        build: [linux, windows, mingw, macos, android]
         arch: [x64, arm, arm64]
         exclude:
           - build: windows
+            arch: arm
+          - build: mingw
             arch: arm
           - build: macos
             arch: arm
@@ -36,8 +38,11 @@ jobs:
             os: windows-latest
             triplet: mingw-static
             vcpkg-root: C:\vcpkg
-            arch: x64
             extra-args: ""
+
+          - build: mingw
+            os: windows-11-arm
+            arch: arm64
 
           - build: macos
             os: macos-latest
@@ -74,7 +79,7 @@ jobs:
       - uses: msys2/setup-msys2@v2
         id: msys2
         with:
-          msystem: CLANG64
+          msystem: ${{ case(matrix.arch == 'arm64', 'CLANGARM64', 'CLANG64') }}
           update: true
           pacboy: >-
             toolchain:p
