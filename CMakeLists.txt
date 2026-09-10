@@ -9,7 +9,11 @@ target_include_directories(${FFMPEG_CORE_NAME} INTERFACE "${CMAKE_CURRENT_SOURCE
 # Detect OS
 if (WIN32 AND NOT MINGW)
 	set(FFMPEG_PREBUILTS_NAME "ffmpeg-windows")
-elseif (APPLE)
+elseif (IOS AND (CMAKE_OSX_SYSROOT MATCHES "iphonesimulator" OR ARCHITECTURE STREQUAL "x86_64"))
+	set(FFMPEG_PREBUILTS_NAME "ffmpeg-ios-simulator")
+elseif (IOS)
+	set(FFMPEG_PREBUILTS_NAME "ffmpeg-ios")
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 	set(FFMPEG_PREBUILTS_NAME "ffmpeg-macos")
 elseif (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
 	set(FFMPEG_PREBUILTS_NAME "ffmpeg-freebsd")

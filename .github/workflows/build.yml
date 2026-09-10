@@ -11,12 +11,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build: [linux, windows, macos, android]
+        build: [linux, windows, macos, android, ios-simulator]
         arch: [x64, arm, arm64]
         exclude:
           - build: windows
             arch: arm
           - build: macos
+            arch: arm
+          - build: ios-simulator
             arch: arm
 
         include:
@@ -85,6 +87,23 @@ jobs:
           - build: android
             arch: arm
             triplet: neon-android
+
+          - build: ios
+            os: macos-latest
+            arch: arm64
+            triplet: ios-release
+            vcpkg-root: /Users/runner/vcpkg
+            extra-args: ""
+
+          - build: ios-simulator
+            os: macos-latest
+            triplet: ios-simulator-release
+            vcpkg-root: /Users/runner/vcpkg
+            extra-args: ""
+
+          - build: ios-simulator
+            arch: x64
+            triplet: ios
 
     steps:
       - run: git config --global core.autocrlf input
