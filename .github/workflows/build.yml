@@ -32,6 +32,10 @@ jobs:
             vcpkg-root: C:\vcpkg
             extra-args: --overlay-triplets=./triplets
 
+          - build: windows
+            os: windows-11-arm
+            arch: arm64
+
           - build: mingw
             os: windows-latest
             triplet: mingw-static
@@ -93,9 +97,10 @@ jobs:
 
       - name: Set up build environment (macos-latest)
         run: |
-          brew install nasm vcpkg
+          brew install nasm
           git clone https://github.com/microsoft/vcpkg "$HOME/vcpkg"
-          echo VCPKG_ROOT="$HOME/vcpkg" >> $GITHUB_ENV
+          echo VCPKG_ROOT="$HOME/vcpkg" >> "$GITHUB_ENV"
+          echo "$HOME/vcpkg" >> "$GITHUB_PATH"
         if: matrix.os == 'macos-latest'
 
       - name: Set up build environment (ubuntu-latest)
@@ -120,6 +125,9 @@ jobs:
           (cd ${{ matrix.vcpkg-root }} && git reset --hard)
           (cd ${{ matrix.vcpkg-root }} && git checkout 34823ada10080ddca99b60e85f80f55e18a44eea)
           (cd ${{ matrix.vcpkg-root }} && git apply --ignore-space-change --ignore-whitespace --3way ${{ github.workspace }}/ffmpeg.patch)
+
+      - name: Update vcpkg executable
+        run: ${{ matrix.vcpkg-root }}/bootstrap-vcpkg${{ case(startsWith(matrix.os, 'windows'), '.bat', '.sh') }}
 
       - name: Build ffmpeg
         run: |
