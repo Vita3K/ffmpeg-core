@@ -65,6 +65,13 @@ jobs:
             vcpkg-root: /Users/runner/vcpkg
             extra-args: --overlay-triplets=./triplets
 
+          - build: freebsd
+            os: ubuntu-latest
+            arch: x64
+            triplet: freebsd
+            vcpkg-root: /usr/local/share/vcpkg
+            extra-args: ""
+
           - build: android
             os: ubuntu-latest
             triplet: android-static-release
