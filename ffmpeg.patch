@@ -12,7 +12,7 @@ index fd794d41c8..b801972ee7 100644
      OPTIONS_x86_64="${OPTIONS_x86}"
  else
 diff --git a/ports/ffmpeg/portfile.cmake b/ports/ffmpeg/portfile.cmake
-index 03397d7af2..d36c16fcbe 100644
+index e15541ecaa..96177ad7ac 100644
 --- a/ports/ffmpeg/portfile.cmake
 +++ b/ports/ffmpeg/portfile.cmake
 @@ -30,7 +30,22 @@ if (VCPKG_TARGET_ARCHITECTURE STREQUAL "x86" OR VCPKG_TARGET_ARCHITECTURE STREQU
@@ -48,7 +48,23 @@ index 03397d7af2..d36c16fcbe 100644
      set(OPTIONS "--toolchain=msvc ${OPTIONS}")
      # This is required because ffmpeg depends upon optimizations to link correctly
      string(APPEND VCPKG_COMBINED_C_FLAGS_DEBUG " -O2")
-@@ -724,6 +739,11 @@ if (NOT VCPKG_BUILD_TYPE OR VCPKG_BUILD_TYPE STREQUAL "release")
+@@ -649,8 +664,13 @@ if (VCPKG_TARGET_IS_IOS)
+         set(simulator "-simulator")
+     endif ()
+ 
+-    set(OPTIONS "${OPTIONS} --extra-cflags=--target=${vcpkg_target_arch}-apple-ios${vcpkg_osx_deployment_target}${simulator}")
+-    set(OPTIONS "${OPTIONS} --extra-ldflags=--target=${vcpkg_target_arch}-apple-ios${vcpkg_osx_deployment_target}${simulator}")
++    if (VCPKG_OSX_ARCHITECTURES)
++        list(JOIN VCPKG_OSX_ARCHITECTURES " " OSX_ARCHS)
++        list(LENGTH VCPKG_OSX_ARCHITECTURES OSX_ARCH_COUNT)
++    else ()
++        set(OPTIONS "${OPTIONS} --extra-cflags=--target=${vcpkg_target_arch}-apple-ios${vcpkg_osx_deployment_target}${simulator}")
++        set(OPTIONS "${OPTIONS} --extra-ldflags=--target=${vcpkg_target_arch}-apple-ios${vcpkg_osx_deployment_target}${simulator}")
++    endif ()
+ 
+     set(vcpkg_osx_sysroot "${VCPKG_OSX_SYSROOT}")
+     # only on x64 for some reason you need to specify the sdk path, otherwise it will try to build with the MacOS sdk
+@@ -728,6 +748,11 @@ if (NOT VCPKG_BUILD_TYPE OR VCPKG_BUILD_TYPE STREQUAL "release")
      # We use response files here as the only known way to handle spaces in paths
      set(crsp "${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/cflags.rsp")
      string(REGEX REPLACE "-arch [A-Za-z0-9_]+" "" VCPKG_COMBINED_C_FLAGS_RELEASE_SANITIZED "${VCPKG_COMBINED_C_FLAGS_RELEASE}")
