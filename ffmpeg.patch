@@ -1,5 +1,5 @@
 diff --git a/ports/ffmpeg/build.sh.in b/ports/ffmpeg/build.sh.in
-index fd794d41c8..b801972ee7 100644
+index dfb56986b6..2dfff9f87e 100644
 --- a/ports/ffmpeg/build.sh.in
 +++ b/ports/ffmpeg/build.sh.in
 @@ -75,7 +75,7 @@ OSX_ARCH_COUNT=0@OSX_ARCH_COUNT@
@@ -12,10 +12,10 @@ index fd794d41c8..b801972ee7 100644
      OPTIONS_x86_64="${OPTIONS_x86}"
  else
 diff --git a/ports/ffmpeg/portfile.cmake b/ports/ffmpeg/portfile.cmake
-index e15541ecaa..96177ad7ac 100644
+index e15541ecaa..819e9ce378 100644
 --- a/ports/ffmpeg/portfile.cmake
 +++ b/ports/ffmpeg/portfile.cmake
-@@ -30,7 +30,22 @@ if (VCPKG_TARGET_ARCHITECTURE STREQUAL "x86" OR VCPKG_TARGET_ARCHITECTURE STREQU
+@@ -30,12 +30,27 @@ if (VCPKG_TARGET_ARCHITECTURE STREQUAL "x86" OR VCPKG_TARGET_ARCHITECTURE STREQU
      vcpkg_add_to_path("${NASM_EXE_PATH}")
  endif()
  
@@ -25,7 +25,7 @@ index e15541ecaa..96177ad7ac 100644
 +# Only enable what is used by Vita3K
 +string(APPEND OPTIONS " --disable-everything")
 +string(APPEND OPTIONS " --enable-decoder=aac --enable-decoder=aac_latm --enable-decoder=atrac3 --enable-decoder=atrac3p --enable-decoder=atrac9 --enable-decoder=mp3 --enable-decoder=pcm_s16le --enable-decoder=pcm_s8")
-+string(APPEND OPTIONS " --enable-decoder=mov --enable-decoder=h264 --enable-decoder=mpeg4 --enable-decoder=mpeg2video --enable-decoder=mjpeg --enable-decoder=mjpegb")
++string(APPEND OPTIONS " --enable-decoder=h264 --enable-decoder=mpeg4 --enable-decoder=mpeg2video --enable-decoder=mjpeg --enable-decoder=mjpegb")
 +string(APPEND OPTIONS " --enable-encoder=pcm_s16le")
 +string(APPEND OPTIONS " --enable-encoder=ffv1 --enable-encoder=mpeg4 --enable-encoder=mjpeg")
 +string(APPEND OPTIONS " --enable-muxer=avi")
@@ -33,12 +33,18 @@ index e15541ecaa..96177ad7ac 100644
 +string(APPEND OPTIONS " --enable-parser=h264 --enable-parser=mpeg4video --enable-parser=mpegaudio --enable-parser=mpegvideo --enable-parser=mjpeg --enable-parser=aac --enable-parser=aac_latm")
 +string(APPEND OPTIONS " --enable-protocol=file")
 +string(APPEND OPTIONS " --enable-bsf=mjpeg2jpeg")
-+if(VCPKG_TARGET_IS_MINGW)
-+    string(APPEND OPTIONS " --target-os=mingw32")
++if(VCPKG_TARGET_IS_WINDOWS)
++    string(APPEND OPTIONS " --enable-indev=dshow")
 +endif()
  
  if(VCPKG_TARGET_IS_MINGW)
      if(VCPKG_TARGET_ARCHITECTURE STREQUAL "x86")
+         string(APPEND OPTIONS " --target-os=mingw32")
+-    elseif(VCPKG_TARGET_ARCHITECTURE STREQUAL "x64")
++    elseif(VCPKG_TARGET_ARCHITECTURE STREQUAL "x64" OR VCPKG_TARGET_ARCHITECTURE STREQUAL "arm64")
+         string(APPEND OPTIONS " --target-os=mingw64")
+     endif()
+ elseif(VCPKG_TARGET_IS_LINUX)
 @@ -62,7 +77,7 @@ endif()
  vcpkg_cmake_get_vars(cmake_vars_file)
  include("${cmake_vars_file}")
@@ -76,29 +82,3 @@ index e15541ecaa..96177ad7ac 100644
      file(WRITE "${crsp}" "${VCPKG_COMBINED_C_FLAGS_RELEASE_SANITIZED}")
      set(ldrsp "${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/ldflags.rsp")
      string(REGEX REPLACE "-arch [A-Za-z0-9_]+" "" VCPKG_COMBINED_SHARED_LINKER_FLAGS_RELEASE_SANITIZED "${VCPKG_COMBINED_SHARED_LINKER_FLAGS_RELEASE}")
-diff --git a/triplets/community/arm64-android-dynamic-release.cmake b/triplets/community/arm64-android-dynamic-release.cmake
-new file mode 100644
-index 0000000000..c585a15f36
---- /dev/null
-+++ b/triplets/community/arm64-android-dynamic-release.cmake
-@@ -0,0 +1,7 @@
-+set(VCPKG_TARGET_ARCHITECTURE arm64)
-+set(VCPKG_CRT_LINKAGE static)
-+set(VCPKG_LIBRARY_LINKAGE dynamic)
-+set(VCPKG_CMAKE_SYSTEM_NAME Android)
-+set(VCPKG_MAKE_BUILD_TRIPLET "--host=aarch64-linux-android")
-+set(VCPKG_CMAKE_CONFIGURE_OPTIONS -DANDROID_ABI=arm64-v8a)
-+set(VCPKG_BUILD_TYPE release)
-diff --git a/triplets/community/arm64-android-static-release.cmake b/triplets/community/arm64-android-static-release.cmake
-new file mode 100644
-index 0000000000..b01b738eed
---- /dev/null
-+++ b/triplets/community/arm64-android-static-release.cmake
-@@ -0,0 +1,7 @@
-+set(VCPKG_TARGET_ARCHITECTURE arm64)
-+set(VCPKG_CRT_LINKAGE static)
-+set(VCPKG_LIBRARY_LINKAGE static)
-+set(VCPKG_CMAKE_SYSTEM_NAME Android)
-+set(VCPKG_MAKE_BUILD_TRIPLET "--host=aarch64-linux-android")
-+set(VCPKG_CMAKE_CONFIGURE_OPTIONS -DANDROID_ABI=arm64-v8a)
-+set(VCPKG_BUILD_TYPE release)

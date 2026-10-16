@@ -76,17 +76,9 @@ jobs:
 
           - build: android
             os: ubuntu-latest
-            triplet: android-static-release
+            triplet: android-release
             vcpkg-root: /usr/local/share/vcpkg
-            extra-args: ""
-
-          - build: android
-            arch: x64
-            triplet: android
-
-          - build: android
-            arch: arm
-            triplet: neon-android
+            extra-args: --overlay-triplets=./triplets
 
           - build: ios
             os: macos-latest
