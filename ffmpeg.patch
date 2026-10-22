@@ -1,5 +1,5 @@
 diff --git a/ports/ffmpeg/build.sh.in b/ports/ffmpeg/build.sh.in
-index dfb56986b6..2dfff9f87e 100644
+index dfb56986b6..4fd8cc1e9f 100644
 --- a/ports/ffmpeg/build.sh.in
 +++ b/ports/ffmpeg/build.sh.in
 @@ -75,7 +75,7 @@ OSX_ARCH_COUNT=0@OSX_ARCH_COUNT@
@@ -12,7 +12,7 @@ index dfb56986b6..2dfff9f87e 100644
      OPTIONS_x86_64="${OPTIONS_x86}"
  else
 diff --git a/ports/ffmpeg/portfile.cmake b/ports/ffmpeg/portfile.cmake
-index e15541ecaa..819e9ce378 100644
+index e15541ecaa..a10b255845 100644
 --- a/ports/ffmpeg/portfile.cmake
 +++ b/ports/ffmpeg/portfile.cmake
 @@ -30,12 +30,27 @@ if (VCPKG_TARGET_ARCHITECTURE STREQUAL "x86" OR VCPKG_TARGET_ARCHITECTURE STREQU
@@ -54,7 +54,7 @@ index e15541ecaa..819e9ce378 100644
      set(OPTIONS "--toolchain=msvc ${OPTIONS}")
      # This is required because ffmpeg depends upon optimizations to link correctly
      string(APPEND VCPKG_COMBINED_C_FLAGS_DEBUG " -O2")
-@@ -649,8 +664,13 @@ if (VCPKG_TARGET_IS_IOS)
+@@ -649,8 +664,15 @@ if (VCPKG_TARGET_IS_IOS)
          set(simulator "-simulator")
      endif ()
  
@@ -63,6 +63,8 @@ index e15541ecaa..819e9ce378 100644
 +    if (VCPKG_OSX_ARCHITECTURES)
 +        list(JOIN VCPKG_OSX_ARCHITECTURES " " OSX_ARCHS)
 +        list(LENGTH VCPKG_OSX_ARCHITECTURES OSX_ARCH_COUNT)
++        set(OPTIONS "${OPTIONS} --extra-cflags=-mios${simulator}-version-min=${vcpkg_osx_deployment_target}")
++        set(OPTIONS "${OPTIONS} --extra-ldflags=-mios${simulator}-version-min=${vcpkg_osx_deployment_target}")
 +    else ()
 +        set(OPTIONS "${OPTIONS} --extra-cflags=--target=${vcpkg_target_arch}-apple-ios${vcpkg_osx_deployment_target}${simulator}")
 +        set(OPTIONS "${OPTIONS} --extra-ldflags=--target=${vcpkg_target_arch}-apple-ios${vcpkg_osx_deployment_target}${simulator}")
@@ -70,7 +72,7 @@ index e15541ecaa..819e9ce378 100644
  
      set(vcpkg_osx_sysroot "${VCPKG_OSX_SYSROOT}")
      # only on x64 for some reason you need to specify the sdk path, otherwise it will try to build with the MacOS sdk
-@@ -728,6 +748,11 @@ if (NOT VCPKG_BUILD_TYPE OR VCPKG_BUILD_TYPE STREQUAL "release")
+@@ -728,6 +750,11 @@ if (NOT VCPKG_BUILD_TYPE OR VCPKG_BUILD_TYPE STREQUAL "release")
      # We use response files here as the only known way to handle spaces in paths
      set(crsp "${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/cflags.rsp")
      string(REGEX REPLACE "-arch [A-Za-z0-9_]+" "" VCPKG_COMBINED_C_FLAGS_RELEASE_SANITIZED "${VCPKG_COMBINED_C_FLAGS_RELEASE}")
