@@ -12,7 +12,7 @@ if(DEFINED VCPKG_PLATFORM_TOOLSET)
     set(VCPKG_PLATFORM_TOOLSET ClangCL)
 endif()
 set(VCPKG_ENV_PASSTHROUGH_UNTRACKED "LLVMInstallDir;LLVMToolsVersion") # For the ClangCL toolset
-# set(VCPKG_QT_TARGET_MKSPEC win32-clang-msvc) # For Qt5
+set(VCPKG_QT_TARGET_MKSPEC win32-clang-msvc) # For Qt5
 
 ## Policy settings
 set(VCPKG_POLICY_SKIP_ARCHITECTURE_CHECK enabled)
