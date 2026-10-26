@@ -107,7 +107,7 @@ jobs:
     steps:
       - run: git config --global core.autocrlf input
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: msys2/setup-msys2@v2
         id: msys2
@@ -134,15 +134,15 @@ jobs:
           sudo apt -y install nasm
         if: matrix.os == 'ubuntu-latest'
 
-      - name: Set up build environment (ubuntu-latest arm)
+      - name: Set up build environment (linux arm)
         run: |
           sudo apt-get install -qy binutils-arm-linux-gnueabihf gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
-        if: matrix.os == 'ubuntu-latest' && matrix.arch == 'arm'
+        if: matrix.build == 'linux' && matrix.arch == 'arm'
 
-      - name: Set up build environment (ubuntu-latest arm64)
+      - name: Set up build environment (linux arm64)
         run: |
           sudo apt-get install -qy binutils-aarch64-linux-gnu gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
-        if: matrix.os == 'ubuntu-latest' && matrix.arch == 'arm64'
+        if: matrix.build == 'linux' && matrix.arch == 'arm64'
 
       - name: Patch vcpkg
         run: |
@@ -156,14 +156,14 @@ jobs:
 
       - name: Build ffmpeg
         run: |
-            vcpkg ${{ matrix.extra-args }} install ffmpeg[avcodec,avfilter,avdevice,avformat,swresample,swscale]:${{ matrix.arch }}-${{ matrix.triplet }}
+          vcpkg ${{ matrix.extra-args }} install ffmpeg[avcodec,avfilter,avdevice,avformat,swresample,swscale]:${{ matrix.arch }}-${{ matrix.triplet }}
         if: matrix.build != 'mingw'
 
       - name: Build ffmpeg (mingw)
         shell: msys2 {0}
         run: |
-            export PATH=$(cygpath '${{ matrix.vcpkg-root }}'):$PATH
-            vcpkg ${{ matrix.extra-args }} install ffmpeg[avcodec,avfilter,avdevice,avformat,swresample,swscale]:${{ matrix.arch }}-${{ matrix.triplet }}
+          export PATH=$(cygpath '${{ matrix.vcpkg-root }}'):$PATH
+          vcpkg ${{ matrix.extra-args }} install ffmpeg[avcodec,avfilter,avdevice,avformat,swresample,swscale]:${{ matrix.arch }}-${{ matrix.triplet }}
         if: matrix.build == 'mingw'
 
       - uses: actions/upload-artifact@v7
@@ -183,7 +183,7 @@ jobs:
       cancel-in-progress: false
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Download Artifacts
         uses: actions/download-artifact@v8
