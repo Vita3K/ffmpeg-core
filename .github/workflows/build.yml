@@ -3,6 +3,9 @@ name: C/C++ CI
 
 on: [push, pull_request]
 
+env:
+  VCPKG_REF: 34823ada10080ddca99b60e85f80f55e18a44eea
+
 jobs:
   build:
     name: ${{ matrix.build }} ${{ matrix.arch }}
@@ -66,13 +69,6 @@ jobs:
             triplet: osx-release
             vcpkg-root: /Users/runner/vcpkg
             extra-args: --overlay-triplets=./triplets
-
-          - build: freebsd
-            os: ubuntu-latest
-            arch: x64
-            triplet: freebsd
-            vcpkg-root: /usr/local/share/vcpkg
-            extra-args: ""
 
           - build: android
             os: ubuntu-latest
@@ -148,8 +144,8 @@ jobs:
         run: |
           (cd ${{ matrix.vcpkg-root }} && git fetch origin)
           (cd ${{ matrix.vcpkg-root }} && git reset --hard)
-          (cd ${{ matrix.vcpkg-root }} && git checkout 34823ada10080ddca99b60e85f80f55e18a44eea)
-          (cd ${{ matrix.vcpkg-root }} && git apply --ignore-space-change --ignore-whitespace --3way ${{ github.workspace }}/ffmpeg.patch)
+          (cd ${{ matrix.vcpkg-root }} && git checkout ${{ env.VCPKG_REF }})
+          (cd ${{ matrix.vcpkg-root }} && git apply --ignore-space-change --ignore-whitespace --3way "${{ github.workspace }}/ffmpeg.patch")
 
       - name: Update vcpkg executable
         run: bash "${{ matrix.vcpkg-root }}/bootstrap-vcpkg.sh"
@@ -172,8 +168,69 @@ jobs:
           path: ${{ matrix.vcpkg-root }}/packages/ffmpeg_${{ matrix.arch }}-${{ matrix.triplet }}/lib
         if: ${{ always() }}
 
+  build-in-vm:
+    name: ${{ matrix.os }} ${{ matrix.arch }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [freebsd]
+        arch:
+          - x64
+          - arm64 # It's very slow; comment it out when debugging
+
+        include:
+          - os: freebsd
+            triplet: freebsd
+            prepare: pkg install -y bash cmake curl git ninja zip unzip autoconf autoconf-archive gmake pkgconf python patchelf nasm
+
+          # There are still bugs
+          # - os: openbsd
+          #   arch: x64
+          #   triplet: openbsd
+          #   prepare: pkg_add -Iv bash cmake coreutils curl git ninja zip unzip-6.0p18-iconv autoconf-2.73 autoconf-archive gmake python patchelf nasm
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up build environment
+        uses: jenseng/dynamic-uses@v1
+        with:
+          uses: vmactions/${{ matrix.os }}-vm@v1
+          with: |
+            arch: ${{ case(matrix.arch == 'arm64', 'aarch64', 'x86_64') }}
+            custom-shell-name: vmsh
+            prepare: ${{ toJSON(matrix.prepare) }}
+
+      - name: Get vcpkg
+        shell: vmsh {0}
+        run: |
+          set -e # Exit immediately	if any command fails
+          git clone https://github.com/microsoft/vcpkg "$HOME/vcpkg"
+          cd "$HOME/vcpkg"
+          git fetch origin
+          git reset --hard
+          git checkout ${{ env.VCPKG_REF }}
+          git apply --ignore-space-change --ignore-whitespace --3way "${{ github.workspace }}/ffmpeg.patch"
+          ./bootstrap-vcpkg.sh
+
+      - name: Build ffmpeg
+        shell: vmsh {0}
+        run: |
+          set -e
+          export PATH="$HOME/vcpkg":$PATH
+          vcpkg install ffmpeg[avcodec,avfilter,avdevice,avformat,swresample,swscale]:${{ matrix.arch }}-${{ matrix.triplet }}
+          cp -R "$HOME/vcpkg/packages/ffmpeg_${{ matrix.arch }}-${{ matrix.triplet }}/lib" "${{ github.workspace }}"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ffmpeg-${{ matrix.os }}-${{ matrix.arch }}
+          path: lib
+        if: ${{ always() }}
+
   create-release:
-    needs: [build]
+    needs: [build, build-in-vm]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master' && github.repository_owner == 'Vita3K'
     permissions:
